@@ -1,4 +1,6 @@
-import cv2
+#face detecting based following robot
+
+import cv2 
 import time 
 import Rpi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
