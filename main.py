@@ -1,50 +1,46 @@
-#face detecting based following robot
+import cv2
+import time
+import RPi.GPIO as GPIO
 
-import cv2 
-import time 
-import Rpi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(4,GPIO.OUT)
-GPIO.setup(5,GPIO.OUT)
-GPIO.setup(6,GPIO.OUT)
-GPIO.setup(13,GPIO.OUT)
-# Load the cascade
+GPIO.setup(4, GPIO.OUT)
+GPIO.setup(5, GPIO.OUT)
+GPIO.setup(6, GPIO.OUT)
+GPIO.setup(13, GPIO.OUT)
 
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-# To capture video from webcam. 
 cap = cv2.VideoCapture(0)
 
-
-while True:
-    # Read the frame
-    _, img = cap.read()
-
-    
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-
-    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-
-    
-    for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
-        GPIO.output(5,True)
-        time.sleep(1)
-        GPIO.output(5,False)
-        time.sleep(1)
-        GPIO.output(5,True)
-        time.sleep(1)
-        #place the robot with no faces seen then  let the robot make a complete 360 without faces visible to it and by trial and error add this again and again
-
-
+try:
+    while True:
+        ret, img = cap.read()
+        if not ret:
+            break
         
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
 
-    
-    cv2.imshow('img', img)
-    GPIO.output(5,False)
-    GPIO.output(13,False)
-    GPIO.output(4,True)
-    GPIO.output(6,True)
+        if len(faces) > 0:
+            for (x, y, w, h) in faces:
+                cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
-cap.release()
+            GPIO.output(5, True)
+            GPIO.output(13, False)
+            GPIO.output(4, False)
+            GPIO.output(6, False)
+        else:
+            GPIO.output(5, False)
+            GPIO.output(13, False)
+            GPIO.output(4, True)
+            GPIO.output(6, True)
+
+        cv2.imshow('Face Tracking Robot', img)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+finally:
+    cap.release()
+    cv2.destroyAllWindows()
+    GPIO.cleanup()
